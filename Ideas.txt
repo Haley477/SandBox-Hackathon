@@ -1,14 +1,20 @@
 Database Maker:
   * User submits criteria/data they want to track, the program sets up a custom database for them
   * Pull data from .csv files and convert to a database table
+  * AUDIENCE: Small Businesses looking to revamp their data storage/usage
 
 Stock Advising:
   * Pulls stock data in form of Web JSON, for whichever stocks the user is interested in, tracks pricing trends and advises on buy/sell points
+  * AUDIENCE: People who want to safely invest at a lower cost, financial advisors who want to automate some of their recommendations
 
 Automated Email List:
   * Maintains a mailing list, and sends follow-up emails if first one gets ignored.
+  * AUDIENCE: Insurance Agents, Realtors
 
 Bot Maker:
   * App that creates a custom bot to help maintain or moderate chat channels. 
-  * Who is the target audience/customer?
+  * AUDIENCE: 
 
+Automated Repair Notifications:
+  * Allow cities to notify people in affected areas of outages or repairs in advance
+  * AUDIENCE: City planners, project managers
