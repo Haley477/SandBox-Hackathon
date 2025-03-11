@@ -1,0 +1,14 @@
+Database Maker:
+  * User submits criteria/data they want to track, the program sets up a custom database for them
+  * Pull data from .csv files and convert to a database table
+
+Stock Advising:
+  * Pulls stock data in form of Web JSON, for whichever stocks the user is interested in, tracks pricing trends and advises on buy/sell points
+
+Automated Email List:
+  * Maintains a mailing list, and sends follow-up emails if first one gets ignored.
+
+Bot Maker:
+  * App that creates a custom bot to help maintain or moderate chat channels. 
+  * Who is the target audience/customer?
+
