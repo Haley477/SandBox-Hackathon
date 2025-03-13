@@ -1,0 +1,10 @@
+node_modules
+
+# Envoirnment files
+.env
+.env.production
+.env.development
+
+
+# Miscelaneous
+notes.txt
