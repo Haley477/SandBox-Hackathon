@@ -35,4 +35,19 @@ router.get("/emails/:id", async (req, res) => {
   }
 });
 
+router.post("/email/send", async (req, res) => {
+  console.log("POST /send route hit with body:", req.body);
+  try {
+    await gmailController.sendEmail(req, res);
+  } catch (error) {
+    console.error("Route error:", error);
+    res
+      .status(500)
+      .json({
+        error: "An error occurred",
+        details: error instanceof Error ? error.message : String(error),
+      });
+  }
+});
+
 export default router;

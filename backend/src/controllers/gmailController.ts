@@ -87,4 +87,41 @@ export class GmailController {
       res.status(500).send("Failed to retrieve email");
     }
   }
+
+  /**
+   * Send an email
+   */
+
+  async sendEmail(req: Request, res: Response) {
+    try {
+      const { to, subject, body, isHtml } = req.body;
+
+      // Validate required fields
+      if (!to || !subject || !body) {
+        return res.status(400).json({
+          error: "Missing required fields",
+          required: ["to", "subject", "body"],
+        });
+      }
+
+      // Send email
+      const result = await this.gmailService.sendEmail(
+        to,
+        subject,
+        body,
+        isHtml === true
+      );
+
+      res.status(200).json({
+        message: "Email sent successfully",
+        id: result,
+      });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({
+        error: "Failed to send email",
+        details: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 }

@@ -115,4 +115,65 @@ export class GmailService {
       snippet: email.snippet,
     };
   }
+
+  /**
+   * Send an email
+   */
+
+  async sendEmail(
+    to: string,
+    subject: string,
+    body: string,
+    isHtml: boolean = false
+  ): Promise<string> {
+    try {
+      const profile = await this.gmail.users.getProfile({
+        userId: "me",
+      });
+
+      const from = profile.data.emailAddress;
+
+      if (!from) {
+        throw new Error("Could not retrieve email address");
+      }
+
+      // Create content
+      let emailContent = "";
+
+      // Headers
+      emailContent += `From: ${from}\r\n`;
+      emailContent += `To: ${to}\r\n`;
+      emailContent += `Subject: ${subject}\r\n`;
+
+      // Content type
+      if (isHtml) {
+        emailContent += `Content-Type: text/html; charset=utf-8\r\n`;
+      } else {
+        emailContent += `Content-Type: text/plain; charset=utf-8\r\n`;
+      }
+
+      emailContent += "\r\n";
+      emailContent += body;
+
+      // Encode email
+      const encodedEmail = Buffer.from(emailContent)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+      // Send email
+      const response = await this.gmail.users.messages.send({
+        userId: "me",
+        requestBody: {
+          raw: encodedEmail,
+        },
+      });
+
+      return response.data.id || "Email Sent Successfully";
+    } catch (error) {
+      console.error("Error sending email:", error);
+      throw error;
+    }
+  }
 }
