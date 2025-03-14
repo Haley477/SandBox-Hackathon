@@ -18,11 +18,10 @@ export class FollowUpController {
 
   /**
    * Start the follow-up scheduler
-   * @param intervalMinutes How often to check for due reminders (in minutes)
    * @returns void
    */
-  private startScheduler(intervalMinutes: number = 60): void {
-    this.scheduler.start(intervalMinutes);
+  private startScheduler(): void {
+    this.scheduler.start();
   }
 
   /**
@@ -31,7 +30,7 @@ export class FollowUpController {
   async processNewEmails(req: Request, res: Response): Promise<void> {
     try {
       const maxEmails = req.body.maxEmails ? parseInt(req.body.maxEmails) : 20;
-      const newRemindersCount = await this.followupService.processNewEmails(
+      const newRemindersCount = await this.scheduler.manualCheckEmails(
         maxEmails
       );
 
@@ -53,7 +52,7 @@ export class FollowUpController {
    */
   async processReminders(req: Request, res: Response): Promise<void> {
     try {
-      const sentCount = await this.followupService.processReminders();
+      const sentCount = await this.scheduler.manualProcessReminders();
 
       res.status(200).json({
         message: `Processed and sent ${sentCount} follow-up reminders`,
@@ -197,6 +196,37 @@ export class FollowUpController {
       console.error("Error deleting reminder:", error);
       res.status(500).json({
         error: "Failed to delete reminder",
+        details: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * Force send a reminder and update its status
+   */
+  async sendForceReminder(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(400).json({
+          error: "Reminder ID is required",
+        });
+        return;
+      }
+
+      await this.followupService.sendForceReminder(id);
+
+      const updatedReminder = this.followupService.getReminder(id);
+
+      res.status(200).json({
+        message: `Reminder with ID ${id} sent successfully`,
+        reminder: updatedReminder,
+      });
+    } catch (error) {
+      console.log("Error sending reminder:", error);
+      res.status(500).json({
+        error: "Failed to send reminder",
         details: error instanceof Error ? error.message : String(error),
       });
     }

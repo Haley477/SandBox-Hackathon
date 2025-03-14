@@ -24,6 +24,16 @@ router.post("/followup/send-reminders", async (req, res) => {
   }
 });
 
+// Force trigger for a specific reminder
+router.post("/followup/reminders/:id/send", async (req, res) => {
+  try {
+    await followupController.sendForceReminder(req, res);
+  } catch (error) {
+    console.error("Route error:", error);
+    res.status(500).send("An error occurred while sending the reminder");
+  }
+});
+
 // Get all reminders
 router.get("/followup/reminders", async (req, res) => {
   try {

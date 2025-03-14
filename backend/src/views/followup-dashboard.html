@@ -351,7 +351,7 @@
         try {
           // First, reset the status if it's completed
           if (reminder.status === "completed") {
-            await fetch(`/followup/reminders/${id}`, {
+            const resetResponse = await fetch(`/followup/reminders/${id}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
@@ -361,66 +361,102 @@
                 lastSentReminderIndex: -1, // Reset to beginning
               }),
             });
+
+            if (!resetResponse.ok) {
+              throw new Error(
+                `Failed to reset reminder status: ${resetResponse.statusText}`
+              );
+            }
+
             addLog(`Reset completed reminder ${id} to pending status`);
           }
 
-          // Now update all dates to ensure proper processing
-          // Set the next reminder date to now (5 seconds ago to ensure it's triggered)
-          const pastDate = new Date();
-          pastDate.setSeconds(pastDate.getSeconds() - 5);
-
-          // We need to keep all the dates but make sure the next one is in the past
-          const nextReminderIndex = Math.max(
-            0,
-            reminder.lastSentReminderIndex + 1
+          // Trigger the send reminder operation
+          const processResponse = await fetch(
+            `/followup/reminders/${id}/send`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
           );
 
-          // Create a copy of reminderDates
-          const updatedDates = [...reminder.reminderDates];
-
-          // Make sure we have at least one date even if the array is empty
-          if (updatedDates.length === 0) {
-            updatedDates.push(pastDate.toISOString());
-          } else if (nextReminderIndex < updatedDates.length) {
-            // Update the next date to be in the past
-            updatedDates[nextReminderIndex] = pastDate.toISOString();
-          } else {
-            // If we've sent all reminders, add a new one
-            updatedDates.push(pastDate.toISOString());
+          if (!processResponse.ok) {
+            throw new Error(
+              `Failed to send reminder: ${processResponse.statusText}`
+            );
           }
 
-          // Update the reminder with the past date AND ensure it's in pending status
-          const updateResponse = await fetch(`/followup/reminders/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              reminderDates: updatedDates,
-              status: "pending", // Ensure it's not marked as completed
-            }),
-          });
-
-          await updateResponse.json();
-          addLog(`Updated reminder ${id} dates for force processing`);
-
-          // Now trigger processing
-          const processResponse = await fetch("/followup/send-reminders", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
           const processResult = await processResponse.json();
-          addLog(`Processed reminders: ${processResult.message || "Complete"}`);
 
-          // Refresh the reminders list
-          await viewReminders();
+          // Update local state with the updated reminder from the response
+          if (processResult.reminder) {
+            // Find the reminder index in our local array
+            const reminderIndex = reminders.findIndex((r) => r.id === id);
+            if (reminderIndex !== -1) {
+              // Update the reminder in our local array
+              reminders[reminderIndex] = processResult.reminder;
+
+              // Update just this row in the table without refreshing the entire list
+              updateReminderRow(id, processResult.reminder);
+            }
+          }
+
+          addLog(`Reminder sent: ${processResult.message || "Complete"}`);
+          setStatus(`Reminder sent successfully`);
         } catch (error) {
           console.error("Error forcing reminder:", error);
           setStatus(`Error: ${error.message}`);
           addLog(`Error forcing reminder: ${error.message}`, true);
+        }
+      }
+
+      // Update a single reminder row in the table
+      function updateReminderRow(id, reminder) {
+        const tableBody = document.getElementById("remindersTableBody");
+        if (!tableBody) return;
+
+        // Find the row with this reminder ID
+        const rows = tableBody.getElementsByTagName("tr");
+        let rowFound = false;
+
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const actionButton = row.querySelector(
+            `button[onclick="forceProcessReminder('${id}')"]`
+          );
+
+          if (actionButton) {
+            rowFound = true;
+
+            // Calculate next reminder date
+            const nextReminderIndex = reminder.lastSentReminderIndex + 1;
+            const nextReminderDate =
+              nextReminderIndex < reminder.reminderDates.length
+                ? new Date(
+                    reminder.reminderDates[nextReminderIndex]
+                  ).toLocaleString()
+                : "N/A";
+
+            // Update the cells in this row
+            const cells = row.getElementsByTagName("td");
+            if (cells.length >= 6) {
+              // Update next reminder date (index 4)
+              cells[4].textContent = nextReminderDate;
+
+              // Update status (index 5)
+              cells[5].textContent = reminder.status.toUpperCase();
+              cells[5].className = `status-${reminder.status}`;
+            }
+
+            break;
+          }
+        }
+
+        // If we didn't find the row, refresh the entire list
+        if (!rowFound) {
+          displayReminders(reminders);
         }
       }
 

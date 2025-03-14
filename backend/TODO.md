@@ -29,3 +29,8 @@
     - [ ] Supabase
     - [ ] PlanetScale
 - [ ] Deployment
+
+## BUGS
+
+- When btn "Procces New Email" is clicked, it gets the right subject [remind:1d] but it should
+  only get when followupfollowup35@gmail.com is cc. Right now it gets when the emials sent from followupfollowup35@gmail.com with the same subject [remind: 1d]

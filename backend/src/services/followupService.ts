@@ -27,6 +27,7 @@ export class FollowUpService {
         this.gmailService.parseEmail(email)
       );
 
+      // From parsedEmails take out the emails
       console.log("==== parsedEmails ==== : ", parsedEmails);
       let newRemindersCount = 0;
 
@@ -312,5 +313,39 @@ export class FollowUpService {
    */
   deleteReminder(id: string): boolean {
     return this.reminders.delete(id);
+  }
+
+  /**
+   * Manually trigger sending a reminder by ID and update its status
+   * @param id Reminder ID
+   * @returns Promise that resolves when the reminder is sent and status is updated
+   */
+  async sendForceReminder(id: string): Promise<void> {
+    try {
+      const reminder = this.reminders.get(id);
+
+      if (!reminder) {
+        console.warn(`Reminder ${id} not found`);
+        throw new Error(`Reminder ${id} not found`);
+      }
+
+      await this.sendReminderEmail(reminder);
+      console.log(`Reminder ${id} sent successfully`);
+
+      const nextReminderIndex = reminder.lastSentReminderIndex + 1;
+      reminder.lastSentReminderIndex = nextReminderIndex;
+      reminder.status =
+        nextReminderIndex >= reminder.reminderDates.length - 1
+          ? "completed"
+          : "sent";
+
+      this.reminders.set(id, reminder);
+
+      console.log(`Reminder ${id} status updated to ${reminder.status}`);
+
+      return;
+    } catch (error) {
+      console.log("Error sending reminder:", error);
+    }
   }
 }

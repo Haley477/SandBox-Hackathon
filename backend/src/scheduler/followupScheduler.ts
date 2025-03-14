@@ -1,57 +1,86 @@
 import { FollowUpService } from "../services/followupService";
+import cron from "node-cron";
 
-//TODO Investigate Job Scheduling Solution
 export class FollowUpScheduler {
   private followUpService: FollowUpService;
-  private checkInterval: ReturnType<typeof setInterval> | null = null;
+  private emailCheckJob: cron.ScheduledTask | null = null;
+  private reminderProcessJob: cron.ScheduledTask | null = null;
 
   constructor(followUpService: FollowUpService) {
     this.followUpService = followUpService;
   }
 
   /**
-   * Start the scheduler to check for follow-ups
-   * @param intervalMinutes How often to check for due reminders (in minutes)
+   * Start the scheduler with the cron schedule job
    */
-  start(intervalMinutes: number = 60): void {
-    if (this.checkInterval) {
-      this.stop(); // Stop existing scheduler if running
+  start(): void {
+    if (this.emailCheckJob || this.reminderProcessJob) {
+      this.stop();
     }
+    console.log("Starting FollowUpScheduler");
 
-    console.log(
-      `Starting follow-up scheduler. Checking every ${intervalMinutes} minutes.`
-    );
+    // Process new emails evey 4 hours (at 00:00, 04:00, 08:00, 12:00, 16:00, 20:00)
+    this.emailCheckJob = cron.schedule("0 0,4,8,12,16,20 * * *", async () => {
+      try {
+        console.log("Checking for new emails");
+        const newRemindersCount = await this.followUpService.processNewEmails();
+        console.log(`Processed ${newRemindersCount} new emails`);
+      } catch (error) {
+        console.error("Error processing new emails", error);
+      }
+    });
 
-    // Run immediately once
-    this.checkFollowUps();
-
-    // Then schedule regular checks
-    this.checkInterval = setInterval(() => {
-      this.checkFollowUps();
-    }, intervalMinutes * 60 * 1000);
+    // Process reminders twicee a day 7am and 7 pm
+    this.reminderProcessJob = cron.schedule("0 7,19 * * *", async () => {
+      try {
+        console.log("Processing reminders");
+        const remindersCount = await this.followUpService.processReminders();
+        console.log(`Processed ${remindersCount} reminders`);
+      } catch (error) {
+        console.error("Error processing reminders", error);
+      }
+    });
+    console.log("Follow-up scheduler started successfully");
   }
 
   /**
    * Stop the scheduler
    */
   stop(): void {
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-      this.checkInterval = null;
-      console.log("Follow-up scheduler stopped.");
+    if (this.emailCheckJob) {
+      this.emailCheckJob.stop();
+      this.emailCheckJob = null;
+    }
+    if (this.reminderProcessJob) {
+      this.reminderProcessJob.stop();
+      this.reminderProcessJob = null;
+    }
+    console.log("Follow-up scheduler stopped successfully");
+  }
+
+  /**
+   * Manually trigger checking for new emails
+   */
+  async manualCheckEmails(maxEamils: number = 20): Promise<number> {
+    try {
+      console.log(`Manually checking for new emails with max ${maxEamils}`);
+      return await this.followUpService.processNewEmails(maxEamils);
+    } catch (error) {
+      console.log("Error processing new emails", error);
+      throw error;
     }
   }
 
   /**
-   * Check for follow-ups that are due and process them
+   * Manually trigger processing of due reminders
    */
-  private async checkFollowUps(): Promise<void> {
+  async manualProcessReminders(): Promise<number> {
     try {
-      console.log("Checking for due follow-up reminders...");
-      const sentCount = await this.followUpService.processReminders();
-      console.log(`Processed ${sentCount} follow-up reminders.`);
+      console.log("Manually processing due follow-up reminders...");
+      return await this.followUpService.processReminders();
     } catch (error) {
-      console.error("Error processing follow-up reminders:", error);
+      console.error("Error manually processing follow-up reminders:", error);
+      throw error;
     }
   }
 }
