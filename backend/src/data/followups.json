@@ -1,0 +1,17 @@
+{
+  "reminders": [
+    {
+      "id": "40442b65-2cee-4a9e-ad08-336015511526",
+      "emailId": "1958dadf6ffed14c",
+      "threadId": "1958dadf6ffed14c",
+      "subject": "Teset Follow Up",
+      "sender": "Fabian Silvestre <edwin16x@gmail.com>",
+      "recipient": "a02305847@usu.edu",
+      "sentDate": "Wed, 12 Mar 2025 22:05:27 -0600",
+      "reminderDate": "2025-03-14T06:33:01.046Z",
+      "reminderCount": 0,
+      "active": true
+    }
+  ],
+  "lastChecked": null
+}

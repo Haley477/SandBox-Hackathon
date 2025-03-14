@@ -34,3 +34,34 @@ export interface AuthTokens {
   token_type: string;
   expiry_date: number;
 }
+
+export interface ReminderInstruction {
+  originalText: string;
+  intervals: number[];
+}
+
+export interface ParsedEmail {
+  id: string;
+  threadId: string;
+  subject: string;
+  from: string;
+  to: string;
+  date: string;
+  body?: string;
+  snippet?: string;
+  reminderInstructions?: ReminderInstruction | null;
+}
+
+export interface FollowUpReminder {
+  id: string;
+  emailId: string;
+  threadId: string;
+  senderEmail: string;
+  recipientEmail: string;
+  subject: string;
+  originalSubject: string;
+  sendDate: Date;
+  reminderDates: Date[];
+  status: "pending" | "sent" | "completed";
+  lastSentReminderIndex: number;
+}

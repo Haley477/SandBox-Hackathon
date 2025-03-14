@@ -3,6 +3,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
 import gmailRoutes from "./routes/gmailRoute";
+import followupRoutes from "./routes/followupRoutes";
 
 // Load environment variables
 dotenv.config();
@@ -15,23 +16,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-app.get("/debug", (req, res) => {
-  res.json({ status: "Server is running", routes: "Registered" });
-});
-
-// Debug route to check POST handling
-app.post("/debug-post", (req, res) => {
-  res.json({
-    status: "POST request received",
-    body: req.body,
-  });
-});
-
 // Static files
-app.use(express.static(path.join(__dirname, "public")));
+const rootDir = __dirname;
+app.use(express.static(path.join(rootDir, "public")));
+
+const viewsPath = path.join(rootDir, "views");
 
 // Routes
 app.use("/", gmailRoutes);
+app.use("/", followupRoutes);
 
 app.get("/", (req, res) => {
   res.send(`
@@ -43,29 +36,8 @@ app.get("/", (req, res) => {
   `);
 });
 
-// Compose email form route
-app.get("/compose", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "compose.html"));
-});
-
-// Print all registered routes for debugging
-console.log("Registered routes:");
-app._router.stack.forEach((middleware: any) => {
-  if (middleware.route) {
-    // Routes registered directly on the app
-    console.log(
-      `${Object.keys(middleware.route.methods)} ${middleware.route.path}`
-    );
-  } else if (middleware.name === "router") {
-    // Router middleware
-    middleware.handle.stack.forEach((handler: any) => {
-      if (handler.route) {
-        const path = handler.route.path;
-        const methods = Object.keys(handler.route.methods);
-        console.log(`${methods} ${path}`);
-      }
-    });
-  }
+app.get("/followup-dashboard", (req, res) => {
+  res.sendFile(path.join(viewsPath, "followup-dashboard.html"));
 });
 
 // Start server

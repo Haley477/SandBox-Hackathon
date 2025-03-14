@@ -1,6 +1,10 @@
 import { google } from "googleapis";
 import { oauth2Client } from "../config/auth";
-import { EmailData, EmailListResponse } from "../types/gmailTypes";
+import {
+  EmailData,
+  EmailListResponse,
+  ReminderInstruction,
+} from "../types/gmailTypes";
 
 export class GmailService {
   private gmail = google.gmail({ version: "v1", auth: oauth2Client });
@@ -19,6 +23,7 @@ export class GmailService {
         pageToken,
       });
 
+      console.log("==== response ====", response);
       const messageIds = response.data.messages || [];
       const emails: EmailData[] = [];
 
@@ -83,26 +88,7 @@ export class GmailService {
       headers.find((h) => h.name.toLowerCase() === "date")?.value ||
       "Unknown Date";
 
-    // Extract body content
-    let bodyContent = "";
-
-    if (email.payload?.body?.data) {
-      bodyContent = Buffer.from(email.payload.body.data, "base64").toString(
-        "utf-8"
-      );
-    } else if (email.payload?.parts && email.payload.parts.length > 0) {
-      // Try to find text/plain or text/html part
-      const textPart = email.payload.parts.find(
-        (part) =>
-          part.mimeType === "text/plain" || part.mimeType === "text/html"
-      );
-
-      if (textPart?.body?.data) {
-        bodyContent = Buffer.from(textPart.body.data, "base64").toString(
-          "utf-8"
-        );
-      }
-    }
+    const reminderInstructions = this.extractReminderInstructions(subject);
 
     return {
       id: email.id,
@@ -111,8 +97,7 @@ export class GmailService {
       from,
       to,
       date,
-      body: bodyContent,
-      snippet: email.snippet,
+      reminderInstructions,
     };
   }
 
@@ -175,5 +160,64 @@ export class GmailService {
       console.error("Error sending email:", error);
       throw error;
     }
+  }
+
+  /**
+   * Extract reminder instructions from email subject and body
+   * @param subject Email subject
+   * @returns ReminderInstruction object or null if not found
+   */
+  extractReminderInstructions(subject: string): ReminderInstruction | null {
+    //  Check reminder pattern
+    const subjectMatch = subject.match(/\[remind:([^\]]+)\]/i);
+    if (subjectMatch && subjectMatch[1]) {
+      return this.parseReminderString(subjectMatch[1]);
+    }
+
+    return null;
+  }
+
+  /**
+   * Parse a reminder string into a structured object
+   * @param reminderStr The reminder string (e.g., "1d,3d,1w")
+   * @returns A structured reminder instruction object
+   */
+  private parseReminderString(reminderStr: string): ReminderInstruction {
+    const intervals: number[] = [];
+    const originalText = reminderStr.trim();
+
+    reminderStr.split(",").forEach((part) => {
+      part = part.trim().toLowerCase();
+
+      if (!part) return;
+
+      let value = parseInt(part);
+
+      if (isNaN(value)) {
+        value = 1; // Default to 1 if no number specified
+      }
+
+      if (part.endsWith("d")) {
+        // Days
+        intervals.push(value);
+      } else if (part.endsWith("w")) {
+        // Weeks
+        intervals.push(value * 7);
+      } else if (part.endsWith("m")) {
+        // Months (approximate)
+        intervals.push(value * 30);
+      } else {
+        // Assume days if no unit specified
+        intervals.push(value);
+      }
+    });
+
+    // Sort intervals in ascending order
+    intervals.sort((a, b) => a - b);
+
+    return {
+      originalText,
+      intervals: intervals.length > 0 ? intervals : [1, 3, 7],
+    };
   }
 }
