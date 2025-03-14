@@ -6,6 +6,7 @@ This is the backend of followUp project.
 
 ```bash
 docker-compose up
+docker compose up
 ```
 
 ## Installation without Docker
@@ -14,17 +15,6 @@ docker-compose up
 npm install
 npm run dev
 ```
-
-## Endpoints
-
-- GET /auth
-  - Redirect to Google authentication page.
-- GET /auth/callback
-  - Callback from Google authentication.
-- GET /emails
-  - Get a list of emails
-- GET /emails/:id
-  - Get a specific email
 
 ## Notes
 

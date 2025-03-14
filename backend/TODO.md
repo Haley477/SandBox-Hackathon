@@ -1,0 +1,31 @@
+# TO DO
+
+- [x] Create the API documentation
+- [ ] Create the frontend
+- [ ] Investigate google api cost
+- [ ] Create the tests
+- [ ] Investigate Job Scheduling Solution
+  - [ ] Cron jobs
+  - [ ] Queues
+    - [ ] Celery
+    - [ ] RabbitMQ
+    - [ ] Redis
+    - [ ] Bull
+  - [ ] Lambda's / Cloud Functions
+    - [ ] Google Cloud Scheduler
+    - [ ] Azure Scheduler
+    - [ ] AWS CloudWatch
+    - [ ] Kubernetes Cron Jobs
+- Database
+  - [ ] Investigate the best database for the project
+    - [ ] PostgreSQL
+    - [ ] MySQL
+    - [ ] SQLite
+  - [ ] Best deployment service
+    - [ ] AWS RDS
+    - [ ] Google Cloud SQL
+    - [ ] Azure SQL
+    - [ ] Heroku Postgres
+    - [ ] Supabase
+    - [ ] PlanetScale
+- [ ] Deployment
