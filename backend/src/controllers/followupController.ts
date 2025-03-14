@@ -9,7 +9,13 @@ export class FollowUpController {
 
   constructor() {
     const gmailService = new GmailService();
-    this.followupService = new FollowUpService(gmailService);
+    const serviceEmailAddress =
+      process.env.FOLLOWUP_SERVICE_EMAIL || "followupfollowup35@gmail.com";
+
+    this.followupService = new FollowUpService(
+      gmailService,
+      serviceEmailAddress
+    );
     this.scheduler = new FollowUpScheduler(this.followupService);
 
     // Start the scheduler when controller is instantiated
@@ -127,8 +133,7 @@ export class FollowUpController {
     try {
       const { id } = req.params;
       const updates = req.body;
-      console.log("==== id ====", id);
-      console.log("==== updates ====", updates);
+
       if (!id) {
         res.status(400).json({
           error: "Reminder ID is required",

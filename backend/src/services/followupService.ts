@@ -9,8 +9,23 @@ export class FollowUpService {
   // Default reminder intervals (in days)
   private defaultReminderIntervals = [1, 3, 7];
 
-  constructor(gmailService: GmailService) {
+  // Service email address - used to filter out emails sent by the service itself
+  private serviceEmailAddress = "followupfollowup35@gmail.com";
+
+  constructor(gmailService: GmailService, serviceEmailAddress?: string) {
     this.gmailService = gmailService;
+
+    // Allow overriding the service email address through constructor
+    if (serviceEmailAddress) {
+      this.serviceEmailAddress = serviceEmailAddress;
+    }
+  }
+  /**
+   * Set the service email address
+   * @param email The email address of the follow-up service
+   */
+  setServiceEmailAddress(email: string): void {
+    this.serviceEmailAddress = email;
   }
 
   /**
@@ -27,14 +42,11 @@ export class FollowUpService {
         this.gmailService.parseEmail(email)
       );
 
-      // From parsedEmails take out the emails
-      console.log("==== parsedEmails ==== : ", parsedEmails);
       let newRemindersCount = 0;
 
       // Process each email
       for (const email of parsedEmails) {
-        // Only process emails sent to our follow-up service email
-        //TODO : Here we will check for cc or bcc check isFollowUpEmail
+        // Only process emails that are intended for our follow-up service
         if (this.isFollowUpEmail(email)) {
           const reminder = await this.createReminderFromEmail(email);
           if (reminder) {
@@ -67,7 +79,6 @@ export class FollowUpService {
 
       // Find the next unsent reminder date
       const nextReminderIndex = reminder.lastSentReminderIndex + 1;
-      console.log(`Next reminder index: ${nextReminderIndex}`);
 
       // If we've sent all reminders, mark as completed
       if (nextReminderIndex >= reminder.reminderDates.length) {
@@ -83,7 +94,6 @@ export class FollowUpService {
       // If it's time to send the reminder
       if (nextReminderDate <= now) {
         try {
-          console.log(`Sending reminder email for ${id}`);
           // Send the reminder email
           await this.sendReminderEmail(reminder);
           console.log(`Successfully sent reminder email for ${id}`);
@@ -210,19 +220,14 @@ export class FollowUpService {
    * @returns Boolean indicating if the email is a follow-up email
    */
   private isFollowUpEmail(email: ParsedEmail): boolean {
-    /**
-     * We not check the email for cc or bcc
-     * Because the email is sent to the follow-up service email address
-     */
-    // TODO: Here will check for all of the email but we should
-    // only check if the email is cc or bcc
+    const senderEmail = this.extractEmailAddress(email.from);
+    if (senderEmail === "followupfollowup35@gmail.com") {
+      console.log(`Skipping email from our follow-up service: ${email.id}`);
+      return false;
+    }
 
-    // Only check for [remind:] syntax in subject
+    // Check for [remind:] syntax in subject
     const reminderSyntaxInSubject = email.subject.includes("[remind:");
-
-    console.log(`Checking email for follow-up: ${email.id}`);
-    console.log(`- Subject: ${email.subject}`);
-    console.log(`- Has [remind:] in subject: ${reminderSyntaxInSubject}`);
 
     return reminderSyntaxInSubject;
   }
@@ -269,8 +274,6 @@ export class FollowUpService {
       console.warn(`Attempt to update non-existent reminder ${id}`);
       return false;
     }
-
-    console.log(`Updating reminder ${id} with:`, updates);
 
     if (updates.reminderDates) {
       const processedDates = updates.reminderDates.map((date) =>
