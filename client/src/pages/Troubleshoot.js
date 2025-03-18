@@ -20,7 +20,7 @@ function Troubleshoot() {
         </li>
     </ul>
     <h2>Contact Support</h2>
-    <p>If you are still experiencing issues, please contact our support team at <a href="mailto:">email.gmail.com</a></p>
+    <p>If you are still experiencing issues, please contact our support team at <a href="mailto:">followupfollowup35@gmail.com</a></p>
     <br/>
     <a href="/">Click here to go back to the main page!</a>
     </div>

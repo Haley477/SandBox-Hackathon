@@ -10,6 +10,7 @@ function SettingUp() {
         <li>Configure the settings as per timeframe needed to send follow-up email.</li>
         <li>Test the installation by creating an email and setting 
             the timeframe for 30 minutes.<a href='/time-frame'>Setting Time Frame</a></li>
+        <li>Or cc:<a href="mailto:">followupfollowup35@gmail.com</a> with [remind:1d,2w,1m] to set up time frame</li>
     </ol>
     <a href="/troubleshoot">If you encounter any issues, refer to the troubleshooting guide.</a>
     </div>

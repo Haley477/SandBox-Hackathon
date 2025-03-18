@@ -31,8 +31,9 @@ function TimeFrame() {
       </form>
 
       <p>For example, you can set reminders for 1 day, 2 days, 3 days, or 1 week.</p>
-      <p>Make sure to adhere to reply to follow-up yes or no depending on if you need
+      <p>Make sure to adhere for replying to follow-up yes or no depending on if you need
         another reminder or not.</p>
+      <p>If you cc:followupfollowup35@gmail.com, follow the template of: [remind:1d,2w,1m]</p>
 
       <br />
       <a href="/setting-up">Click here for instructions on how to set up reminders!</a>
