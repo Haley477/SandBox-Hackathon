@@ -1,0 +1,12 @@
+node_modules
+
+# Envoirnment files
+.env
+.env.production
+.env.development
+.env.docker
+
+
+# Miscelaneous
+notes.txt
+client_secret.json
