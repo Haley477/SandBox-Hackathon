@@ -6,5 +6,5 @@ The focus and point of this project is so that instead of emails getting lost in
 # Contribution
 
 This project consisted of 2 team members:
-Edwin Silvester - Backend designer
-Haley Smith - Client designer
+```Edwin Silvester - Backend designer
+```Haley Smith - Client designer
